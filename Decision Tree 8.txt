@@ -1,0 +1,111 @@
+import numpy as np
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+%matplotlib inline
+import warnings
+warnings.filterwarnings('ignore')
+
+
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import accuracy_score, roc_auc_score, roc_curve
+from sklearn.tree import plot_tree
+
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
+
+from sklearn.metrics import confusion_matrix 
+from sklearn.metrics import classification_report
+
+df=pd.read_csv("iris.csv")
+df.head(5)
+
+df.shape
+
+df.isnull().sum()
+
+df.info()
+
+df.describe().T
+
+# finding outliers
+a=df.columns[0:-1]
+for i in a:
+    sns.boxplot(y=df[i])
+    plt.show()
+
+
+
+q1=df['sepal.width'].quantile(q=0.25)
+q3=df['sepal.width'].quantile(q=0.75)
+iqr=q3-q1
+
+
+df = df[(df['sepal.width'] >= q1-1.5*iqr) & (df['sepal.width'] <= q3+1.5*iqr)]
+df.shape
+
+sns.boxplot(y=df['sepal.width'])
+plt.show()
+
+## splitting data
+Y=df['variety']
+X=df.drop("variety",axis=1)
+x_train,x_test,y_train,y_test=train_test_split(X,Y,train_size=0.33,random_state=1)
+
+X.shape, Y.shape
+
+# Defining an object for DTC and fitting for whole dataset
+dt = DecisionTreeClassifier(max_depth=3, min_samples_leaf=10, random_state=1 )
+dt.fit(X, Y)
+
+from sklearn.tree import plot_tree
+
+plt.figure(figsize=(10,6))
+dt = DecisionTreeClassifier().fit(X,Y)
+plot_tree(dt, filled=True)
+plt.title("Decision tree trained on all the iris features")
+plt.show()
+
+
+# Defining an object for DTC and fitting for train dataset
+dt = DecisionTreeClassifier(random_state=1)
+dt.fit(x_train, y_train)
+
+y_pred_train = dt.predict(x_train)
+y_pred = dt.predict(x_test)
+y_prob = dt.predict_proba(x_test)
+
+print('Accuracy of Decision Tree-Train: ', accuracy_score(y_pred_train, y_train))
+print('Accuracy of Decision Tree-Test: ', accuracy_score(y_pred, y_test))
+
+# Hyperparameter Tuning of DTC
+
+dt = DecisionTreeClassifier(random_state=1)
+
+params = {'max_depth' : [2,3,4,5],
+        'min_samples_split': [2,3,4,5],
+        'min_samples_leaf': [1,2,3,4,5]}
+
+gsearch = GridSearchCV(dt, param_grid=params, cv=3)
+
+gsearch.fit(X,Y)
+
+gsearch.best_params_
+
+# Passing best parameter for the Hyperparameter Tuning
+dt = DecisionTreeClassifier(**gsearch.best_params_, random_state=1)
+
+dt.fit(x_train, y_train)
+
+y_pred_train = dt.predict(x_train)
+y_prob_train = dt.predict_proba(x_train)[:,1]
+
+y_pred = dt.predict(x_test)
+y_prob = dt.predict_proba(x_test)[:,1]
+
+print('Confusion Matrix - Train:','\n',confusion_matrix(y_train,y_pred_train))
+print('\n','Confusion Matrix - Test:','\n',confusion_matrix(y_test,y_pred))
+
+print('Accuracy of Decision Tree-Train: ', accuracy_score(y_pred_train, y_train))
+print('Accuracy of Decision Tree-Test: ', accuracy_score(y_pred, y_test)) 

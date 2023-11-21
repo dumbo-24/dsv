@@ -1,0 +1,81 @@
+import pandas as pd
+
+from matplotlib import pyplot as plt
+import seaborn as sns
+
+import warnings
+warnings.filterwarnings('ignore')
+
+news_data=pd.read_csv("NewspaperData.csv")
+news_data.head(10)
+
+
+news_data.shape
+
+
+news_data.describe()
+
+
+news_data.isnull().sum()
+
+
+news_data.dtypes
+
+
+sns.lmplot(data=news_data,x='daily',y='sunday')
+plt.title("daily vs sunday sell")
+plt.show()
+
+
+
+sns.distplot( a=news_data['daily'],hist=False)
+plt.title("daily sell")
+plt.show()
+
+
+news_data['daily'].skew()
+
+
+news_data['daily'].kurtosis()
+
+
+import statsmodels.formula.api as smf
+linear_model=smf.ols(formula="sunday~daily",data=news_data)
+
+
+
+linear_model=linear_model.fit()
+
+
+
+
+linear_model.params
+
+print(linear_model.summary())
+
+
+#If daily sales = 300, sunday sales? ---> 415.75
+#(1.339715*300) + 13.835630
+#If daily sales = 250, sunday sales? ---> 348.76
+#(1.339715*250) + 13.835630
+#If daily sales = 585, sunday sales? ---> 797.56
+#(1.339715*585) + 13.835630
+
+linear_model.predict(x_test)
+
+linear_model.predict(x_test)
+
+from pickle import dump
+
+dump(linear_model,open("linear_intelligence.pkl",'wb'))
+
+
+from pickle import load
+
+loaded_linear_model=load(open('linear_intelligence.pkl','rb'))
+
+
+load(open('linear_intelligence.pkl','rb'))
+
+
+loaded_linear_model.predict(x_test)
